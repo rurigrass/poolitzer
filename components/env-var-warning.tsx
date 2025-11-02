@@ -1,6 +1,6 @@
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-
+// YOU NEED TO DELETE THIS ONE AT SOME POINT
 export function EnvVarWarning() {
   return (
     <div className="flex gap-4 items-center">
