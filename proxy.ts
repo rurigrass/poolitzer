@@ -1,8 +1,15 @@
 import { updateSession } from "./lib/supabase/middleware";
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function proxy(request: NextRequest) {
-  return updateSession(request);
+  try {
+    return await updateSession(request);
+  } catch (error) {
+    // Log the error for debugging
+    console.error('Proxy error:', error);
+    // Allow request to continue even if proxy fails
+    return NextResponse.next();
+  }
 }
 
 // See "Matching Paths" below to learn more
