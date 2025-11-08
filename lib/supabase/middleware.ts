@@ -73,7 +73,9 @@ export async function updateSession(request: NextRequest) {
   } catch (error) {
     // Catch any errors and log them, but don't crash
     console.error('[MIDDLEWARE] Unexpected error:', error instanceof Error ? error.message : String(error));
+    console.error('[MIDDLEWARE] Error stack:', error instanceof Error ? error.stack : 'No stack');
     // Always return a valid response, even on error
+    // Return the supabaseResponse we created earlier
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
@@ -89,5 +91,7 @@ export async function updateSession(request: NextRequest) {
   // If this is not done, you may be causing the browser and server to go out
   // of sync and terminate the user's session prematurely!
 
+  // CRITICAL: Always return supabaseResponse, even if there was an error
+  // This ensures the request continues to the route handler
   return supabaseResponse;
 }

@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function proxy(request: NextRequest) {
+  // Always ensure we return a response, even if everything fails
   try {
     // Use dynamic import to avoid import-time __dirname access
     // This loads Supabase only when the function runs, not at module load time
@@ -9,13 +10,16 @@ export async function proxy(request: NextRequest) {
     
     // Ensure we always return a valid NextResponse
     if (!(response instanceof NextResponse)) {
-      return NextResponse.next();
+      console.warn('[PROXY] Invalid response type, using NextResponse.next()');
+      return NextResponse.next({ request });
     }
     return response;
   } catch (error) {
     // Log error but always return a valid response
     console.error('[PROXY] Top-level error:', error instanceof Error ? error.message : String(error));
-    return NextResponse.next();
+    console.error('[PROXY] Error stack:', error instanceof Error ? error.stack : 'No stack');
+    // CRITICAL: Always return NextResponse.next() to forward request to routes
+    return NextResponse.next({ request });
   }
 }
 
