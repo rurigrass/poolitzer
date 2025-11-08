@@ -1,12 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-
-// Polyfill for __dirname in Edge Runtime (if needed by dependencies)
-// Edge Runtime doesn't have __dirname, but some dependencies might expect it
-if (typeof __dirname === 'undefined') {
-  // @ts-ignore - Edge Runtime polyfill
-  (globalThis as any).__dirname = '/';
-}
 
 export async function updateSession(request: NextRequest) {
   // Always create a response first - this ensures we always return something
@@ -22,6 +14,10 @@ export async function updateSession(request: NextRequest) {
   }
 
   try {
+    // Dynamic import to avoid import-time __dirname access in Edge Runtime
+    // This loads createServerClient only when the function runs
+    const { createServerClient } = await import("@supabase/ssr");
+    
     // With Fluid compute, don't put this client in a global environment
     // variable. Always create a new one on each request.
     const supabase = createServerClient(
