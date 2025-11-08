@@ -2,8 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
-  console.log('[MIDDLEWARE] updateSession called for:', request.nextUrl.pathname);
-  
+  // Always create a response first - this ensures we always return something
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -15,39 +14,46 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // With Fluid compute, don't put this client in a global environment
-  // variable. Always create a new one on each request.
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
-          );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
-          );
+  try {
+    // With Fluid compute, don't put this client in a global environment
+    // variable. Always create a new one on each request.
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) =>
+              request.cookies.set(name, value),
+            );
+            supabaseResponse = NextResponse.next({
+              request,
+            });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options),
+            );
+          },
         },
       },
-    },
-  );
+    );
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
+    // Do not run code between createServerClient and
+    // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
+    // issues with users being randomly logged out.
 
-  // IMPORTANT: If you remove getClaims() and you use server-side rendering
-  // with the Supabase client, your users may be randomly logged out.
-  try {
-    const { data } = await supabase.auth.getClaims();
+    // IMPORTANT: If you remove getClaims() and you use server-side rendering
+    // with the Supabase client, your users may be randomly logged out.
+    const { data, error } = await supabase.auth.getClaims();
+    
+    if (error) {
+      console.error('[MIDDLEWARE] Auth error:', error.message);
+      // Continue without blocking - let the request proceed
+      return supabaseResponse;
+    }
+
     const user = data?.claims;
 
     if (
@@ -62,10 +68,9 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
   } catch (error) {
-    // If auth check fails, log error but don't block the request
-    // This prevents proxy from crashing on auth errors
-    console.error('Error checking auth:', error);
-    // Allow request to continue - better to show page than crash
+    // Catch any errors and log them, but don't crash
+    console.error('[MIDDLEWARE] Unexpected error:', error instanceof Error ? error.message : String(error));
+    // Always return a valid response, even on error
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
@@ -81,6 +86,5 @@ export async function updateSession(request: NextRequest) {
   // If this is not done, you may be causing the browser and server to go out
   // of sync and terminate the user's session prematurely!
 
-  console.log('[MIDDLEWARE] Returning supabaseResponse, status:', supabaseResponse.status);
   return supabaseResponse;
 }
