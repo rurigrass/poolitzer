@@ -2,13 +2,15 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
+  console.log('[MIDDLEWARE] updateSession called for:', request.nextUrl.pathname);
+  
   let supabaseResponse = NextResponse.next({
     request,
   });
 
   // Check if environment variables are set
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error('Missing Supabase environment variables');
+    console.error('[MIDDLEWARE] Missing Supabase environment variables');
     // Continue without auth check if env vars are missing
     return supabaseResponse;
   }
@@ -79,5 +81,6 @@ export async function updateSession(request: NextRequest) {
   // If this is not done, you may be causing the browser and server to go out
   // of sync and terminate the user's session prematurely!
 
+  console.log('[MIDDLEWARE] Returning supabaseResponse, status:', supabaseResponse.status);
   return supabaseResponse;
 }
