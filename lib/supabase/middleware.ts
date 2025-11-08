@@ -1,25 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
-  // Always create a response first - this ensures we always return something
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  // Check if environment variables are set
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error('[MIDDLEWARE] Missing Supabase environment variables');
-    // Continue without auth check if env vars are missing
     return supabaseResponse;
   }
 
   try {
-    // Dynamic import to avoid import-time __dirname access in Edge Runtime
-    // This loads createServerClient only when the function runs
     const { createServerClient } = await import("@supabase/ssr");
     
-    // With Fluid compute, don't put this client in a global environment
-    // variable. Always create a new one on each request.
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -43,17 +35,9 @@ export async function updateSession(request: NextRequest) {
       },
     );
 
-    // Do not run code between createServerClient and
-    // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
-    // issues with users being randomly logged out.
-
-    // IMPORTANT: If you remove getClaims() and you use server-side rendering
-    // with the Supabase client, your users may be randomly logged out.
     const { data, error } = await supabase.auth.getClaims();
     
     if (error) {
-      console.error('[MIDDLEWARE] Auth error:', error.message);
-      // Continue without blocking - let the request proceed
       return supabaseResponse;
     }
 
@@ -65,33 +49,13 @@ export async function updateSession(request: NextRequest) {
       !request.nextUrl.pathname.startsWith("/login") &&
       !request.nextUrl.pathname.startsWith("/auth")
     ) {
-      // no user, potentially respond by redirecting the user to the login page
       const url = request.nextUrl.clone();
       url.pathname = "/auth/login";
       return NextResponse.redirect(url);
     }
   } catch (error) {
-    // Catch any errors and log them, but don't crash
-    console.error('[MIDDLEWARE] Unexpected error:', error instanceof Error ? error.message : String(error));
-    console.error('[MIDDLEWARE] Error stack:', error instanceof Error ? error.stack : 'No stack');
-    // Always return a valid response, even on error
-    // Return the supabaseResponse we created earlier
+    // Allow request to continue on error
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
-
-  // CRITICAL: Always return supabaseResponse, even if there was an error
-  // This ensures the request continues to the route handler
   return supabaseResponse;
 }
