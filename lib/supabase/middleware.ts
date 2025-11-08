@@ -1,6 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+// Polyfill for __dirname in Edge Runtime (if needed by dependencies)
+// Edge Runtime doesn't have __dirname, but some dependencies might expect it
+if (typeof __dirname === 'undefined') {
+  // @ts-ignore - Edge Runtime polyfill
+  (globalThis as any).__dirname = '/';
+}
+
 export async function updateSession(request: NextRequest) {
   // Always create a response first - this ensures we always return something
   let supabaseResponse = NextResponse.next({
