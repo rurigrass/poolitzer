@@ -66,7 +66,6 @@ export default function RootLayout({
                     </Suspense>
                   </div>
                 </nav>
-                <div className="w-full flex-1 flex flex-col gap-20 p-5 max-w-full overflow-x-hidden"></div>
                 <div className="w-full max-w-full overflow-x-hidden">{children}</div>
               </div>
 
