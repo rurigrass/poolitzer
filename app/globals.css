@@ -73,4 +73,8 @@
   .glass {
     @apply backdrop-blur-lg shadow-lg;
   }
+
+  .no-scrollbar {
+    @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+  }
 }
