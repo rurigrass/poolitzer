@@ -51,7 +51,7 @@ export default function RootLayout({
             }}
           >
             <div className="w-full mx-auto max-w-full overflow-x-hidden">
-              <div className="w-full flex flex-col gap-20 items-center overflow-x-hidden">
+              <div className="w-full flex flex-col items-center overflow-x-hidden">
                 <nav className="w-full flex justify-center h-16 overflow-x-hidden">
                   <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm min-w-0">
                     <div className="hidden md:flex gap-5 items-center font-semibold min-w-0">

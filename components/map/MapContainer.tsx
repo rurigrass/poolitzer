@@ -1,21 +1,22 @@
 "use client";
-import { useEffect } from "react";
-import { Map, useMap } from "@vis.gl/react-maplibre";
+import { useState } from "react";
+import { Map } from "@vis.gl/react-maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { middleOfEurope } from "@/lib/constants";
 import type { MapLayerMouseEvent } from "maplibre-gl";
+import AddLocationAtPointPopup from "./AddLocationAtPointPopup";
+import UserPopup from "./UserPopup";
 
 type MapContainerProps = {
   userLocation?: [number, number];
 };
 
 export default function MapContainer({ userLocation }: MapContainerProps) {
-  console.log("USER LOCATIONz", userLocation);
+  const [clickLngLat, setClickLngLat] = useState<[number, number] | null>(null);
 
   const handleClick = (event: MapLayerMouseEvent) => {
-    console.log("EVENT", event);
     const { lng, lat } = event.lngLat;
-    console.log("Clicked at:", { longitude: lng, latitude: lat });
+    setClickLngLat([lng, lat]);
   };
 
   return (
@@ -35,7 +36,11 @@ export default function MapContainer({ userLocation }: MapContainerProps) {
         onClick={handleClick}
       >
         {/* <MapClickHandler /> */}
-        {/* <UserPopup /> */}
+        <UserPopup userLocation={userLocation} />
+        <AddLocationAtPointPopup
+          lngLat={clickLngLat}
+          onClose={() => setClickLngLat(null)}
+        />
       </Map>
     </div>
   );

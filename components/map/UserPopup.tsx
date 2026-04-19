@@ -1,29 +1,30 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import { useEffect } from "react";
 import { Popup, useMap } from "@vis.gl/react-maplibre";
-import { getUserLocation } from "../../lib/api";
 import { middleOfEurope } from "@/lib/constants";
 
-export default function UserPopup() {
-  const [popupLocation, setPopupLocation] = useState(middleOfEurope);
-  const { current: map } = useMap();
+type UserPopupProps = {
+  userLocation?: [number, number];
+};
 
-  console.log("POPUP LOCATION", popupLocation);
+function isFallbackLocation(loc: [number, number]): boolean {
+  return loc[0] === middleOfEurope[0] && loc[1] === middleOfEurope[1];
+}
+
+export default function UserPopup({ userLocation }: UserPopupProps) {
+  const { current: map } = useMap();
+  const coords = userLocation ?? middleOfEurope;
 
   useEffect(() => {
-    if (!map) return;
-    (async () => {
-      const location = await getUserLocation();
-      if (location !== middleOfEurope) {
-        setPopupLocation(location);
-        map.flyTo({ center: location, zoom: 8 });
-      }
-    })();
-  }, [map]);
+    if (!map || !userLocation || isFallbackLocation(userLocation)) return;
+    map.flyTo({ center: userLocation, zoom: 8 });
+  }, [map, userLocation]);
 
   if (!map) return null;
 
   return (
-    <Popup longitude={popupLocation[0]} latitude={popupLocation[1]}>
+    <Popup longitude={coords[0]} latitude={coords[1]}>
       <h3>You are approximately here!</h3>
     </Popup>
   );

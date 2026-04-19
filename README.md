@@ -49,6 +49,52 @@ The above will also clone the Starter kit to your GitHub, you can clone that loc
 
 If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
 
+## Supabase setup (this app)
+
+Use this when you create a **new** Supabase project or reconnect after losing access to the old one.
+
+1. **Create a project** — [Supabase dashboard](https://supabase.com/dashboard) → New project (quick link: [database.new](https://database.new)). Wait until the project is ready.
+2. **API keys** — **Project Settings → API**. Copy **Project URL** and the **anon** or **publishable** public key (not `service_role`).
+3. **`.env.local`** — In the repo root, set (see [`.env.example`](.env.example)):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`  
+   Restart `npm run dev` after saving.
+4. **Auth redirect URLs** — **Authentication → URL Configuration**:
+   - **Site URL:** `http://localhost:3000` for local development (use your real production URL when deployed).
+   - **Redirect URLs:** include at least `http://localhost:3000/**`, or add explicitly: `http://localhost:3000/auth/confirm`, `http://localhost:3000/auth/update-password`, `http://localhost:3000/protected`. Add the same paths on your production origin when you ship.
+5. **`locations` table** — Either paste [`supabase/migrations/20260419120000_locations.sql`](supabase/migrations/20260419120000_locations.sql) into the **SQL Editor**, or use the CLI after [linking](#supabase-cli-link-this-repo-to-your-cloud-project) below: `npm run db:push`. The map page queries `public.locations`.
+6. **Deploy** — In Vercel (or similar), set the same two `NEXT_PUBLIC_*` variables and extend Supabase redirect URLs for your production domain.
+
+### Supabase CLI: link this repo to your cloud project
+
+The [`supabase/`](supabase/) folder holds CLI config ([`config.toml`](supabase/config.toml)) and versioned migrations so this Next app and your hosted database stay in sync.
+
+1. **Install** — `npm install` (adds the [`supabase`](https://www.npmjs.com/package/supabase) CLI as a dev dependency).
+2. **Log in** — `npx supabase login` (opens the browser once).
+3. **Link** — From the repo root, run `npm run db:link` and follow the prompts, or pass your project ref explicitly (the subdomain in `https://YOUR_REF.supabase.co`):
+
+   ```bash
+   npx supabase link --project-ref YOUR_REF
+   ```
+
+   You may be asked for the **database password** you set when creating the project (not the anon API key).
+
+4. **Push migrations** — Apply everything under [`supabase/migrations/`](supabase/migrations/) to the linked remote database:
+
+   ```bash
+   npm run db:push
+   ```
+
+5. **Optional types** — Regenerate TypeScript types from the remote schema:
+
+   ```bash
+   npm run db:types
+   ```
+
+   That writes [`lib/database.types.ts`](lib/database.types.ts) (create/commit when you start using it).
+
+Link metadata is stored under `supabase/.temp/` (see [`supabase/.gitignore`](supabase/.gitignore)); it is not committed, so each machine runs `db:link` once.
+
 ## Clone and run locally
 
 1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
@@ -77,14 +123,10 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 
   ```env
   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[INSERT SUPABASE PROJECT API PUBLISHABLE OR ANON KEY]
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE ANON OR PUBLISHABLE PUBLIC KEY]
   ```
-  > [!NOTE]
-  > This example uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, which refers to Supabase's new **publishable** key format.
-  > Both legacy **anon** keys and new **publishable** keys can be used with this variable name during the transition period. Supabase's dashboard may show `NEXT_PUBLIC_SUPABASE_ANON_KEY`; its value can be used in this example.
-  > See the [full announcement](https://github.com/orgs/supabase/discussions/29260) for more information.
 
-  Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+  Use the **anon** or **publishable** public key from [API settings](https://supabase.com/dashboard/project/_?showConnect=true) (not `service_role`). See [Supabase key discussion](https://github.com/orgs/supabase/discussions/29260) if your dashboard labels differ.
 
 5. You can now run the Next.js local development server:
 
