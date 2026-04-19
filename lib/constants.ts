@@ -1,0 +1,1 @@
+export const middleOfEurope: [number, number] = [10, 50];

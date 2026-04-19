@@ -5,6 +5,7 @@ import "./globals.css";
 import { DeployButton } from "@/components/deploy-button";
 import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -60,8 +61,11 @@ export default function RootLayout({
                       </div>
                     </div>
                     <Suspense fallback={<div className="h-9" />}>
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 flex items-center gap-2">
                         <AuthButton />
+                        <Button asChild size="sm" variant="outline">
+                          <Link href="/map">Map</Link>
+                        </Button>
                       </div>
                     </Suspense>
                   </div>

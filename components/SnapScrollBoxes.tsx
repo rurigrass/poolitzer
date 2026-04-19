@@ -10,7 +10,7 @@ export function SnapScrollBoxes({ count = 8 }: SnapScrollBoxesProps) {
       {Array.from({ length: count }, (_, index) => (
         <div
           key={index}
-          className="shrink-0 snap-center h-40 rounded-lg bg-blue-500 first:ml-6 last:mr-6"
+          className="shrink-0 snap-center h-40 corner-squircle rounded-lg bg-blue-500 first:ml-6 last:mr-6"
           style={{ width: "calc(100% - 3rem)" }}
         />
       ))}

@@ -68,5 +68,8 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@toolwind/corner-shape"),
+  ],
 } satisfies Config;

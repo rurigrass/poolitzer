@@ -19,6 +19,12 @@ export default function Home() {
 
       <SnapScrollBoxes count={11} />
 
+      <div className="w-full flex justify-center items-center">
+        <div className="p-20 corner-squircle rounded-[200px] bg-blue-500 max-w-[100px] max-h-[100px]›">
+          hello
+        </div>
+      </div>
+
       {/* <iframe
         className="aspect-video w-full rounded-xl border border-border"
         src="https://codesandbox.io/embed/4qqvrz?view=editor+%2B+preview&module=%2Findex.html"
